@@ -1,2 +1,2 @@
-# MasterDataScience
-Progetti per Master Data Science
+# BigData_ProjectExame
+Progetto Big Data per Master Data Science
