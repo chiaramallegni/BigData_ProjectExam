@@ -26,15 +26,10 @@ create_folder(parent_dir,'log',mode)
 spark = SparkSession.builder.getOrCreate()
 sc = SparkContext.getOrCreate()
 
-df = spark.read \
-    .format("com.esri.spark.shp") \
-    .options(path="data/gps.shp", columns="atext,adate", format="GEOJSON") \
-    .load() \
-    .cache()
 
 
 #path per il file csv da leggere
-londonBike = r"C:\Users\chrma\PycharmProjects\BigData_ProjectExam\data\LondonBike\london.csv"
+londonBike = r"C:\Users\adila\PycharmProjects\BigData_ProjectExam\data\london.csv"
 
 #leggo il csv
 df_londonBike = spark.read.option("delimiter", ",").option("header", True).csv(londonBike)
@@ -68,7 +63,7 @@ df_londonBike = df_londonBike.cache()
 #storageLevel.MEMORY_AND_DISK
 #storageLevel.MEMORY_ONLY
 #storageLevel.DISK_ONLY
-df_londonBike = df_londonBike.persist(storageLevel.MEMORY_AND_DISK)
+#df_londonBike = df_londonBike.persist(storageLevel.MEMORY_AND_DISK)
 #toglie dalla cache
-df_londonBike = df_londonBike.unpersist(storageLevel.MEMORY_AND_DISK)
+#df_londonBike = df_londonBike.unpersist(storageLevel.MEMORY_AND_DISK)
 #
