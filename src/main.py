@@ -7,7 +7,7 @@ from pyspark.sql.types import *
 from pyspark.sql.functions import col
 import plotly.express as px
 from FolderUtilities import create_folder
-import logger
+
 
 
 #mode for crete folder
