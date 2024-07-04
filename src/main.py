@@ -7,6 +7,8 @@ from pyspark.sql.types import *
 from pyspark.sql.functions import col
 import plotly.express as px
 from FolderUtilities import create_folder
+import logger
+
 
 #mode for crete folder
 mode = 0o666
@@ -14,23 +16,22 @@ mode = 0o666
 #drirectory project
 parent_dir = "../" # il . sta per la cartella sopra (. = 1 cartella sopra, .. 2 cartelle sopra)
 
-# name folder per data
-fld_data = 'data'
 
-# name folder for export image
-fld_image = 'exp_image'
-
-print("Ciao")
-
-
-create_folder(parent_dir,fld_data,mode)
-create_folder(parent_dir,fld_image,mode)
-
+fld_data = create_folder(parent_dir,'data',mode)
+create_folder(parent_dir,'exp_image',mode)
+create_folder(parent_dir,'log',mode)
 
 
 
 spark = SparkSession.builder.getOrCreate()
 sc = SparkContext.getOrCreate()
+
+df = spark.read \
+    .format("com.esri.spark.shp") \
+    .options(path="data/gps.shp", columns="atext,adate", format="GEOJSON") \
+    .load() \
+    .cache()
+
 
 #path per il file csv da leggere
 londonBike = r"C:\Users\chrma\PycharmProjects\BigData_ProjectExam\data\LondonBike\london.csv"

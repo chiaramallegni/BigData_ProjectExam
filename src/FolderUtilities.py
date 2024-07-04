@@ -1,4 +1,5 @@
 import os
+import logger
 
 class FolderUtilities:
     def __init__(self, parent_dir, folder, mode):
