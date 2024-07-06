@@ -28,10 +28,9 @@ source_data_file = fd.askopenfilename()
 # copia e estrare nella directory data del progetto
 shutil.copy(source_data_file, fld_data)
 print("unzip del file")
-
+#unzip del file
 shutil.unpack_archive(source_data_file, fld_data, 'zip')
-
-print("unzip concluso")
+print("file estratto")
 
 # avvio la sessione di spark
 spark = SparkSession.builder.getOrCreate()
