@@ -1,6 +1,5 @@
 #import librerie esterne
 import shutil
-from zipfile import ZipFile
 from tkinter import filedialog as fd
 from pyspark.sql import SparkSession
 from pyspark import SparkContext, StorageLevel
