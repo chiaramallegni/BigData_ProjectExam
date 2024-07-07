@@ -8,19 +8,11 @@ from pyspark.sql.functions import col
 import plotly.express as px
 from graphframes import GraphFrame
 
-#import classi interne
-from FolderUtilities import create_folder
+# import classi interne
 
+from variables_and_path import *
 
-#mode for crete folder
-mode = 0o666
-
-#drirectory project
-parent_dir = '../' # il . sta per la cartella sopra (. = 1 cartella sopra, .. 2 cartelle sopra)
-
-fld_data = create_folder(parent_dir,'data',mode)
-create_folder(parent_dir,'exp_image',mode)
-create_folder(parent_dir,'log',mode)
+# in variables_and_path creo le cartelle necessarie al progetto
 
 # recupera tramite richiesta il file contente i dati zippati che devono essere copaiati nella directory data del progetto
 source_data_file = fd.askopenfilename()
@@ -32,13 +24,43 @@ print("unzip del file")
 shutil.unpack_archive(source_data_file, fld_data, 'zip')
 print("file estratto")
 
+
+# importo i dati geografici creati
+
+from manage_geodata import *
+from convert_utilities import geometry_to_wkt
+
+gdf_list = [gdf_london_stations, gfd_buildings_200m, gdf_london_pois_200m]
+
+df_london_stations = gdf_london_stations.copy()
+df_buildings_200m = gfd_buildings_200m.copy()
+df_london_pois_200m = gdf_london_pois_200m.copy()
+
+gdf_list = [df_london_stations, df_buildings_200m, df_london_pois_200m]
+
+for gdf in gdf_list:
+    geometry_to_wkt(gdf)
+    print('converisone wkt', gdf, 'effettuata')
+
 # avvio la sessione di spark
 spark = SparkSession.builder.getOrCreate()
 sc = SparkContext.getOrCreate()
 
+# creazione datafame spark from geopandas
 
-#path per il file csv da leggere
-londonBike = fld_data + '\london_bike\london.csv'
+sdf_london_stations = spark.createDataFrame(df_london_stations)
+print('creato spark sdf_london_stations')
+sdf_london_stations.printSchema()
+
+sdf_buildings_200m = spark.createDataFrame(df_buildings_200m)
+print('creato spark sdf_buildings_200m')
+sdf_buildings_200m.printSchema()
+
+sdf_london_pois_200m = spark.createDataFrame(df_london_pois_200m)
+print('creato spark sdf_london_pois_200m')
+sdf_london_pois_200m.printSchema()
+
+
 
 #leggo il csv
 df_londonBike = spark.read.option("delimiter", ",").option("header", True).csv(londonBike)
@@ -50,6 +72,8 @@ f_londonBike = df_londonBike.withColumn("duration", df_londonBike["duration"].ca
 df_londonBike = df_londonBike.withColumn("start_rental_date_time", df_londonBike["start_rental_date_time"].cast("date"))
 df_londonBike = df_londonBike.withColumn("end_rental_date_time", df_londonBike["end_rental_date_time"].cast("date"))
 df_londonBike.printSchema()
+
+
 
 
 #assegna un nuovo nome alle colonne
