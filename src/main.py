@@ -80,9 +80,6 @@ g.inDegrees.show()
 spark.stop()
 
 
-spark.stop()
-
-
 #nuovo_df = df_londonBike.withColumnRenamed('rental_id', 'ID')
 
 #seleczione 3 metodi:
