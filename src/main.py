@@ -15,10 +15,8 @@ from shapely import wkb, wkt # creating and parsing geospatial data
 from variables_and_path import *
 
 # in variables_and_path creo le cartelle necessarie al progetto
-
 # recupera tramite richiesta il file contente i dati zippati che devono essere copaiati nella directory data del progetto
 
-# importo la cartella dei dati principali
 if os.path.isdir(data_subfoler):
     print("i csv from geodata sono stati già generati")
 else:
