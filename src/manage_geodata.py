@@ -120,19 +120,28 @@ plt.savefig(fld_image + '/buffer_station.png')
 # eseguo una spatial join per intercettare tutti i building di londra che si trovano in un raggio di 200 metri dalle bike station e creo un df dedicato
 
 gfd_buildings_200m = gpd.sjoin(gdf_london_buildings_prj, gdf_london_buffer_stations, how='inner', predicate='intersects')
-print(gfd_buildings_200m.groupby(['station_id'])['station_id'].value_counts())
+#print(gfd_buildings_200m.groupby(['station_id'])['station_id'].value_counts())
 
 # eseguo una spatial join per intercettare tutti i punti di interesse di londra che si trovano in un raggio di 200 metri dalle bike station e creo un df dedicato
 
 gdf_london_pois_200m = gpd.sjoin(gdf_london_pois_prj, gdf_london_buffer_stations, how='inner', predicate='intersects')
-print(gdf_london_pois_200m.groupby(['station_id'])['station_id'].value_counts())
+#print(gdf_london_pois_200m.groupby(['station_id'])['station_id'].value_counts())
 
 # eseguo una spatial join per intercettare tutte le fermate treno e metro di londra che si trovano in un raggio di 200 metri dalle bike station e creo un df dedicato
 
 gdf_london_railway_station_200m = gpd.sjoin(gdf_london_railway_station_prj, gdf_london_buffer_stations, how='inner', predicate='intersects')
-print(gdf_london_railway_station_200m.groupby(['station_id'])['station_id'].value_counts())
+#print(gdf_london_railway_station_200m.groupby(['station_id'])['station_id'].value_counts())
 
-# modifico il fomato dle campo geometri per i gfd creati in modo che possano essere letti da spark
+
+gdf_list = [gfd_buildings_200m, gdf_london_pois_200m, gdf_london_railway_station_200m]
+
+for gdf in gdf_list:
+    gdf.drop(["geometry", "longitude", "latitude"], axis=1, inplace=True)
+
+gfd_buildings_200m.to_csv(data_subfoler + "gfd_buildings_200m.csv")
+gdf_london_pois_200m.to_csv(data_subfoler + "gdf_london_pois_200m.csv")
+gdf_london_railway_station_200m.to_csv(data_subfoler + "gdf_london_railway_station_200m.csv")
+    #gdf.to_csv(fld_data + '/' + gdf.name + ".csv")gfd_buildings_200m.to_csv(gfd_buildings_200m + 'gfd_buildings_200m.csv')
 
 
 
