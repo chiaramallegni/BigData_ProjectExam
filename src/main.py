@@ -4,79 +4,82 @@ from tkinter import filedialog as fd
 from pyspark.sql import SparkSession
 from pyspark import SparkContext, StorageLevel
 from pyspark.sql.types import *
-from pyspark.sql.functions import col
+from pyspark.sql.functions import *
 import plotly.express as px
 from graphframes import GraphFrame
+from shapely.geometry import Point, Polygon, shape # creating geospatial data
+from shapely import wkb, wkt # creating and parsing geospatial data
 
 # import classi interne
 
 from variables_and_path import *
 
 # in variables_and_path creo le cartelle necessarie al progetto
-
 # recupera tramite richiesta il file contente i dati zippati che devono essere copaiati nella directory data del progetto
-source_data_file = fd.askopenfilename()
 
-# copia e estrare nella directory data del progetto
-shutil.copy(source_data_file, fld_data)
-print("unzip del file")
-#unzip del file
-shutil.unpack_archive(source_data_file, fld_data, 'zip')
-print("file estratto")
-
+if os.path.isdir(data_subfoler):
+    print("i csv from geodata sono stati già generati")
+else:
+    print("chiedo la cartella dei dat da scaricati da importare nel progetto")
+    source_data_file = fd.askopenfilename()
+    # copia e estrare nella directory data del progetto
+    shutil.copy(source_data_file, fld_data)
+    print("unzip del file")
+    # unzip del file
+    shutil.unpack_archive(source_data_file, fld_data, 'zip')
+    print("file estratto")
 
 # importo i dati geografici creati
+if os.path.exists(data_subfoler + "gfd_buildings_200m.csv"):
+   print("i csv from geodata sono stati già generati")
+else:
+   print("genero geodata sono stati già generati con manage_geodata")
+   from manage_geodata import *
 
-from manage_geodata import *
-from convert_utilities import geometry_to_wkt
 
-gdf_list = [gdf_london_stations, gfd_buildings_200m, gdf_london_pois_200m]
-
-df_london_stations = gdf_london_stations.copy()
-df_buildings_200m = gfd_buildings_200m.copy()
-df_london_pois_200m = gdf_london_pois_200m.copy()
-
-gdf_list = [df_london_stations, df_buildings_200m, df_london_pois_200m]
-
-for gdf in gdf_list:
-    geometry_to_wkt(gdf)
-    print('converisone wkt', gdf, 'effettuata')
-
-# avvio la sessione di spark
 spark = SparkSession.builder.getOrCreate()
 sc = SparkContext.getOrCreate()
 
-# creazione datafame spark from geopandas
+sdf_buildings_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gfd_buildings_200m.csv")
+sdf_london_pois_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gdf_london_pois_200m.csv")
+sdf_london_railway_station_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gdf_london_railway_station_200m.csv")
 
-sdf_london_stations = spark.createDataFrame(df_london_stations)
-print('creato spark sdf_london_stations')
-sdf_london_stations.printSchema()
-
-sdf_buildings_200m = spark.createDataFrame(df_buildings_200m)
-print('creato spark sdf_buildings_200m')
 sdf_buildings_200m.printSchema()
-
-sdf_london_pois_200m = spark.createDataFrame(df_london_pois_200m)
-print('creato spark sdf_london_pois_200m')
 sdf_london_pois_200m.printSchema()
-
-
+sdf_london_railway_station_200m.printSchema()
 
 #leggo il csv
 df_londonBike = spark.read.option("delimiter", ",").option("header", True).csv(londonBike)
-df_londonBike.show(5)
-df_londonBike.printSchema()
 
 #definire il formato delle colonne
-f_londonBike = df_londonBike.withColumn("duration", df_londonBike["duration"].cast("integer"))
+df_londonBike = df_londonBike.withColumn("duration", df_londonBike["duration"].cast("integer"))
 df_londonBike = df_londonBike.withColumn("start_rental_date_time", df_londonBike["start_rental_date_time"].cast("date"))
 df_londonBike = df_londonBike.withColumn("end_rental_date_time", df_londonBike["end_rental_date_time"].cast("date"))
+#df_londonBike.show(5)
 df_londonBike.printSchema()
 
+sdf_london_pois_200mgp = sdf_london_pois_200m.groupBy(col('station_id'), col('fclass')).count()
 
+#creazione del grafo
 
-
+df_edge = df_londonBike.groupBy(col('start_station_id'), col('end_station_id')).count().alias('bike_run_count')
+#select = df_g.filter(col('count') == 0) # non esistono staioni che non sono relazionate tra loco.
+df_edge = df_edge.withColumn('relationship', lit('Exist')) # fare una query inserento una coniziona tipo se count > di metti altro, altrimenti bassa o fai delle classi magari in base all'ora di star e end....ragionarci.
+# oppure ancora quando fai le join con la prrte geografica inventarci qualcosa ....dare in significato alla colonna relationship....
 #assegna un nuovo nome alle colonne
+df_edge = df_edge.withColumnRenamed('start_station_id', 'src')
+df_edge = df_edge.withColumnRenamed('end_station_id', 'dst')
+df_edge = df_edge.withColumnRenamed('count', 'weight')
+
+src = df_edge.select('src')
+dst = df_edge.select('dst')
+df_node = src.union(dst).distinct().withColumnRenamed('src', 'id')
+g = GraphFrame(df_node, df_edge)
+g.inDegrees.show()
+
+spark.stop()
+
+
 #nuovo_df = df_londonBike.withColumnRenamed('rental_id', 'ID')
 
 #seleczione 3 metodi:
@@ -94,7 +97,7 @@ df_londonBike.printSchema()
 #df_londonBike = df_londonBike.repartition(100)
 
 #funzione chache...default utilizza solo la ram
-#df_londonBike = df_londonBike.cache()
+
 #iporto l'utilizzo delle ram e quando non basta più usa il disco
 #storageLevel.MEMORY_AND_DISK
 #storageLevel.MEMORY_ONLY
