@@ -5,6 +5,7 @@ from pyspark.sql import SparkSession
 from pyspark import SparkContext, StorageLevel
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
+
 import plotly.express as px
 from graphframes import GraphFrame
 from shapely.geometry import Point, Polygon, shape # creating geospatial data
@@ -54,24 +55,29 @@ df_londonBike = spark.read.option("delimiter", ",").option("header", True).csv(l
 
 #definire il formato delle colonne
 df_londonBike = df_londonBike.withColumn("duration", df_londonBike["duration"].cast("integer"))
+df_londonBike = df_londonBike.withColumn("start_station_id", df_londonBike["start_station_id"].cast("integer"))
+df_londonBike = df_londonBike.withColumn("end_station_id", df_londonBike["end_station_id"].cast("integer"))
 df_londonBike = df_londonBike.withColumn("start_rental_date_time", to_timestamp(col("start_rental_date_time")))
 df_londonBike = df_londonBike.withColumn("end_rental_date_time", to_timestamp(col("end_rental_date_time")))
 
 #scompongo le colonne timestamp in giorno-ore-minuti-secondi in modo che mi consentano di fare delle analisi staistiche sul tempo
 df_londonBike = df_londonBike.withColumn("start_day", to_date(col("start_rental_date_time")))
+df_londonBike = df_londonBike.withColumn('start_day_of_week', date_format('start_day', 'EEEE'))
+df_londonBike = df_londonBike.withColumn('start_month', date_format('start_day', 'MMMM'))
 df_londonBike = df_londonBike.withColumn("start_hour", hour(col("start_rental_date_time")))
 df_londonBike = df_londonBike.withColumn("start_minute", minute(col("start_rental_date_time")))
-df_londonBike = df_londonBike.withColumn("start_second", second(col("start_rental_date_time")))
+#df_londonBike = df_londonBike.withColumn("start_second", second(col("start_rental_date_time")))
 df_londonBike = df_londonBike.withColumn("end_day", to_date(col("end_rental_date_time")))
+df_londonBike = df_londonBike.withColumn('end_day_of_week', date_format('end_day', 'EEEE'))
+df_londonBike = df_londonBike.withColumn('end_month', date_format('start_day', 'MMMM'))
 df_londonBike = df_londonBike.withColumn("end_hour", hour(col("end_rental_date_time")))
 df_londonBike = df_londonBike.withColumn("end_minute", minute(col("end_rental_date_time")))
-df_londonBike = df_londonBike.withColumn("end_second", second(col("end_rental_date_time")))
+# = df_londonBike.withColumn("end_second", second(col("end_rental_date_time")))
+
 
 df_londonBike.orderBy(col("start_hour"),col("end_hour").desc()).show()
 
 df_londonBike.printSchema()
-
-
 
 
 df_date = df_londonBike.select(col("start_rental_date_time"), col("end_rental_date_time"))
@@ -93,10 +99,10 @@ df_edge = df_edge.withColumnRenamed('count', 'weight')
 src = df_edge.select('src')
 dst = df_edge.select('dst')
 df_node = src.union(dst).distinct().withColumnRenamed('src', 'id')
-g = GraphFrame(df_node, df_edge)
-g.inDegrees.show()
+g_london_stations = GraphFrame(df_node, df_edge)
+g_london_stations.inDegrees.show()
 
-spark.stop()
+#spark.stop()
 
 
 #nuovo_df = df_londonBike.withColumnRenamed('rental_id', 'ID')
@@ -123,5 +129,5 @@ spark.stop()
 #storageLevel.DISK_ONLY
 #df_londonBike = df_londonBike.persist(storageLevel.MEMORY_AND_DISK)
 #toglie dalla cache
-#df_londonBike = df_londonBike.unpersist(storageLevel.MEMORY_AND_DISK)
+#df_londonBike = df_londonBike.unpersist(StorageLevel.MEMORY_AND_DISK)
 #
