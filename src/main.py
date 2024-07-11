@@ -18,7 +18,7 @@ from variables_and_path import *
 # recupera tramite richiesta il file contente i dati zippati che devono essere copaiati nella directory data del progetto
 
 if os.path.isdir(data_subfoler):
-    print("i csv from geodata sono stati già generati")
+    print("i csv from sono già presenti")
 else:
     print("chiedo la cartella dei dat da scaricati da importare nel progetto")
     source_data_file = fd.askopenfilename()
@@ -50,13 +50,32 @@ sdf_london_railway_station_200m.printSchema()
 
 #leggo il csv
 df_londonBike = spark.read.option("delimiter", ",").option("header", True).csv(londonBike)
+#df_londonBike.show()
 
 #definire il formato delle colonne
 df_londonBike = df_londonBike.withColumn("duration", df_londonBike["duration"].cast("integer"))
-df_londonBike = df_londonBike.withColumn("start_rental_date_time", df_londonBike["start_rental_date_time"].cast("date"))
-df_londonBike = df_londonBike.withColumn("end_rental_date_time", df_londonBike["end_rental_date_time"].cast("date"))
-#df_londonBike.show(5)
+df_londonBike = df_londonBike.withColumn("start_rental_date_time", to_timestamp(col("start_rental_date_time")))
+df_londonBike = df_londonBike.withColumn("end_rental_date_time", to_timestamp(col("end_rental_date_time")))
+
+#scompongo le colonne timestamp in giorno-ore-minuti-secondi in modo che mi consentano di fare delle analisi staistiche sul tempo
+df_londonBike = df_londonBike.withColumn("start_day", to_date(col("start_rental_date_time")))
+df_londonBike = df_londonBike.withColumn("start_hour", hour(col("start_rental_date_time")))
+df_londonBike = df_londonBike.withColumn("start_minute", minute(col("start_rental_date_time")))
+df_londonBike = df_londonBike.withColumn("start_second", second(col("start_rental_date_time")))
+df_londonBike = df_londonBike.withColumn("end_day", to_date(col("end_rental_date_time")))
+df_londonBike = df_londonBike.withColumn("end_hour", hour(col("end_rental_date_time")))
+df_londonBike = df_londonBike.withColumn("end_minute", minute(col("end_rental_date_time")))
+df_londonBike = df_londonBike.withColumn("end_second", second(col("end_rental_date_time")))
+
+df_londonBike.orderBy(col("start_hour"),col("end_hour").desc()).show()
+
 df_londonBike.printSchema()
+
+
+
+
+df_date = df_londonBike.select(col("start_rental_date_time"), col("end_rental_date_time"))
+df_date.show()
 
 sdf_london_pois_200mgp = sdf_london_pois_200m.groupBy(col('station_id'), col('fclass')).count()
 
