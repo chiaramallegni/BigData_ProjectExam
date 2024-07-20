@@ -6,7 +6,7 @@ from pyspark import SparkContext, StorageLevel
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 
-import plotly.express as px
+
 from graphframes import GraphFrame
 from shapely.geometry import Point, Polygon, shape # creating geospatial data
 from shapely import wkb, wkt # creating and parsing geospatial data
@@ -43,6 +43,7 @@ sc = SparkContext.getOrCreate()
 
 sdf_buildings_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gfd_buildings_200m.csv")
 sdf_london_pois_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gdf_london_pois_200m.csv")
+#sdf_london_pois_200m.show()
 sdf_london_railway_station_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gdf_london_railway_station_200m.csv")
 
 sdf_buildings_200m.printSchema()
@@ -60,13 +61,12 @@ df_londonBike = df_londonBike.withColumn("end_station_id", df_londonBike["end_st
 df_londonBike = df_londonBike.withColumn("start_rental_date_time", to_timestamp(col("start_rental_date_time")))
 df_londonBike = df_londonBike.withColumn("end_rental_date_time", to_timestamp(col("end_rental_date_time")))
 
-#scompongo le colonne timestamp in giorno-ore-minuti-secondi in modo che mi consentano di fare delle analisi staistiche sul tempo
+#scompongo le colonne timestamp in modo che mi consentano di fare delle analisi staistiche sul tempo
 df_londonBike = df_londonBike.withColumn("start_day", to_date(col("start_rental_date_time")))
 df_londonBike = df_londonBike.withColumn('start_day_of_week', date_format('start_day', 'EEEE'))
 df_londonBike = df_londonBike.withColumn('start_month', date_format('start_day', 'MMMM'))
 df_londonBike = df_londonBike.withColumn("start_hour", hour(col("start_rental_date_time")))
 df_londonBike = df_londonBike.withColumn("start_minute", minute(col("start_rental_date_time")))
-#df_londonBike = df_londonBike.withColumn("start_second", second(col("start_rental_date_time")))
 df_londonBike = df_londonBike.withColumn("end_day", to_date(col("end_rental_date_time")))
 df_londonBike = df_londonBike.withColumn('end_day_of_week', date_format('end_day', 'EEEE'))
 df_londonBike = df_londonBike.withColumn('end_month', date_format('start_day', 'MMMM'))
@@ -74,6 +74,15 @@ df_londonBike = df_londonBike.withColumn("end_hour", hour(col("end_rental_date_t
 df_londonBike = df_londonBike.withColumn("end_minute", minute(col("end_rental_date_time")))
 # = df_londonBike.withColumn("end_second", second(col("end_rental_date_time")))
 
+station_poist_cnt = sdf_london_pois_200m.groupBy(col('fclass'), col('station_id')).count().orderBy(col('station_id').desc())
+#station_poist_cnt.show()
+station_poist_dst = sdf_london_pois_200m.select(col("fclass")).distinct().show()
+
+station_poist_dst = sdf_london_pois_200m.distinct("fclass").count().show()
+
+sdf_london_pois_200m.createOrReplaceTempView("V_london_pois_200m")
+spark.sql("SELECT DISTINCT fclass FROM V_london_pois_200m").count()
+station_poist_dst.count()
 
 df_londonBike.orderBy(col("start_hour"),col("end_hour").desc()).show()
 
@@ -85,6 +94,16 @@ df_date.show()
 
 sdf_london_pois_200mgp = sdf_london_pois_200m.groupBy(col('station_id'), col('fclass')).count()
 
+df_londonBike_cnt = df_londonBike.count()
+#df_londonBike_cnt
+day_week_cnt = (df_londonBike.groupBy(col('start_day_of_week')).count())
+#day_week_cnt.show()
+df_londonBike_cnt =day_week_cnt.withColumn('frequency', col("count") / df_londonBike_cnt)
+df_londonBike_cnt.show()
+
+
+
+day_week_cnt.show()
 #creazione del grafo
 
 df_edge = df_londonBike.groupBy(col('start_station_id'), col('end_station_id')).count().alias('bike_run_count')
