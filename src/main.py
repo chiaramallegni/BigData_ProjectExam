@@ -101,8 +101,9 @@ dst = df_edge.select('dst')
 df_node = src.union(dst).distinct().withColumnRenamed('src', 'id')
 g_london_stations = GraphFrame(df_node, df_edge)
 g_london_stations.inDegrees.show()
-
-#spark.stop()
+g_london_stations.outDegrees.show()
+g_london_stations.degrees.show()
+spark.stop()
 
 
 #nuovo_df = df_londonBike.withColumnRenamed('rental_id', 'ID')
