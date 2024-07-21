@@ -1,110 +1,62 @@
 #import librerie esterne
 import shutil
 from tkinter import filedialog as fd
+import sys
+import logging
+import datetime
+import os
+
+
 from pyspark.sql import SparkSession
 from pyspark import SparkContext, StorageLevel
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 
+import plotly.express as px
 
 from graphframes import GraphFrame
 from shapely.geometry import Point, Polygon, shape # creating geospatial data
 from shapely import wkb, wkt # creating and parsing geospatial data
 
 # import classi interne
-
+import variables_and_path
 from variables_and_path import *
+from set_log import *
 
 # in variables_and_path creo le cartelle necessarie al progetto
 # recupera tramite richiesta il file contente i dati zippati che devono essere copaiati nella directory data del progetto
 
+logger.info("******LONDON BIKE *******")
+logger.info("")
+logger.info("Stating Analysis...")
+
+logger.info ("-- IMPORT DATA --")
+
 if os.path.isdir(data_subfoler):
     print("i csv from sono già presenti")
+    logger.info("i csv from sono già presenti")
 else:
     print("chiedo la cartella dei dat da scaricati da importare nel progetto")
+    logger.info("chiedo la cartella dei dat da scaricati da importare nel progetto")
     source_data_file = fd.askopenfilename()
     # copia e estrare nella directory data del progetto
     shutil.copy(source_data_file, fld_data)
     print("unzip del file")
+    logger.info("unzip del file")
     # unzip del file
     shutil.unpack_archive(source_data_file, fld_data, 'zip')
     print("file estratto")
-
-# importo i dati geografici creati
-if os.path.exists(data_subfoler + "gfd_buildings_200m.csv"):
-   print("i csv from geodata sono stati già generati")
-else:
-   print("genero geodata sono stati già generati con manage_geodata")
-   from manage_geodata import *
-
-
-spark = SparkSession.builder.getOrCreate()
-sc = SparkContext.getOrCreate()
-
-sdf_buildings_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gfd_buildings_200m.csv")
-sdf_london_pois_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gdf_london_pois_200m.csv")
-#sdf_london_pois_200m.show()
-sdf_london_railway_station_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gdf_london_railway_station_200m.csv")
-
-sdf_buildings_200m.printSchema()
-sdf_london_pois_200m.printSchema()
-sdf_london_railway_station_200m.printSchema()
-
-#leggo il csv
-df_londonBike = spark.read.option("delimiter", ",").option("header", True).csv(londonBike)
-#df_londonBike.show()
-
-#definire il formato delle colonne
-df_londonBike = df_londonBike.withColumn("duration", df_londonBike["duration"].cast("integer"))
-df_londonBike = df_londonBike.withColumn("start_station_id", df_londonBike["start_station_id"].cast("integer"))
-df_londonBike = df_londonBike.withColumn("end_station_id", df_londonBike["end_station_id"].cast("integer"))
-df_londonBike = df_londonBike.withColumn("start_rental_date_time", to_timestamp(col("start_rental_date_time")))
-df_londonBike = df_londonBike.withColumn("end_rental_date_time", to_timestamp(col("end_rental_date_time")))
-
-#scompongo le colonne timestamp in modo che mi consentano di fare delle analisi staistiche sul tempo
-df_londonBike = df_londonBike.withColumn("start_day", to_date(col("start_rental_date_time")))
-df_londonBike = df_londonBike.withColumn('start_day_of_week', date_format('start_day', 'EEEE'))
-df_londonBike = df_londonBike.withColumn('start_month', date_format('start_day', 'MMMM'))
-df_londonBike = df_londonBike.withColumn("start_hour", hour(col("start_rental_date_time")))
-df_londonBike = df_londonBike.withColumn("start_minute", minute(col("start_rental_date_time")))
-df_londonBike = df_londonBike.withColumn("end_day", to_date(col("end_rental_date_time")))
-df_londonBike = df_londonBike.withColumn('end_day_of_week', date_format('end_day', 'EEEE'))
-df_londonBike = df_londonBike.withColumn('end_month', date_format('start_day', 'MMMM'))
-df_londonBike = df_londonBike.withColumn("end_hour", hour(col("end_rental_date_time")))
-df_londonBike = df_londonBike.withColumn("end_minute", minute(col("end_rental_date_time")))
-# = df_londonBike.withColumn("end_second", second(col("end_rental_date_time")))
-
-station_poist_cnt = sdf_london_pois_200m.groupBy(col('fclass'), col('station_id')).count().orderBy(col('station_id').desc())
-#station_poist_cnt.show()
-station_poist_dst = sdf_london_pois_200m.select(col("fclass")).distinct().show()
-
-station_poist_dst = sdf_london_pois_200m.distinct("fclass").count().show()
-
-sdf_london_pois_200m.createOrReplaceTempView("V_london_pois_200m")
-spark.sql("SELECT DISTINCT fclass FROM V_london_pois_200m").count()
-station_poist_dst.count()
-
-df_londonBike.orderBy(col("start_hour"),col("end_hour").desc()).show()
-
-df_londonBike.printSchema()
-
-
-df_date = df_londonBike.select(col("start_rental_date_time"), col("end_rental_date_time"))
-df_date.show()
-
-sdf_london_pois_200mgp = sdf_london_pois_200m.groupBy(col('station_id'), col('fclass')).count()
-
-df_londonBike_cnt = df_londonBike.count()
-#df_londonBike_cnt
-day_week_cnt = (df_londonBike.groupBy(col('start_day_of_week')).count())
-#day_week_cnt.show()
-df_londonBike_cnt =day_week_cnt.withColumn('frequency', col("count") / df_londonBike_cnt)
-df_londonBike_cnt.show()
+    logger.info("ile estratto")
 
 
 
-day_week_cnt.show()
-#creazione del grafo
+logger.info("-- START MANAGE LONDON BIKE DATAFRAME --")
+
+from manage_london_bike import *
+
+set_log.logger.info("-- START GRAPH FRAME --")
+
+# GRAPHFRAME
 
 df_edge = df_londonBike.groupBy(col('start_station_id'), col('end_station_id')).count().alias('bike_run_count')
 #select = df_g.filter(col('count') == 0) # non esistono staioni che non sono relazionate tra loco.
@@ -134,8 +86,7 @@ spark.stop()
 
 
 
-#verifico il numero di partizioni
-#print(df_londonBike.rdd.getNumPartitions())
+
 #modifico il numero di partizioni
 #df_londonBike = df_londonBike.coalesce(10)
 #aumenta il numero di partiizoni

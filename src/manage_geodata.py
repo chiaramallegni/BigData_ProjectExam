@@ -1,12 +1,12 @@
 #import librerie esterne
-
-import os
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
+import set_log
 
 # import classi interne
 from variables_and_path import *
+
 
 #lettura delle bike station csv
 df_london_stations= pd.read_csv(londonStation)
@@ -143,12 +143,6 @@ gdf_london_pois_200m.to_csv(data_subfoler + "gdf_london_pois_200m.csv")
 gdf_london_railway_station_200m.to_csv(data_subfoler + "gdf_london_railway_station_200m.csv")
     #gdf.to_csv(fld_data + '/' + gdf.name + ".csv")gfd_buildings_200m.to_csv(gfd_buildings_200m + 'gfd_buildings_200m.csv')
 
-
-
-
-
-
-# In[ ]:
 
 
 
