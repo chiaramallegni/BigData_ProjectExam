@@ -38,7 +38,7 @@ set_log.logger.info("TOP row for LondonBike  \n"+ getShowStringForLog(df_londonB
 PartitionNumber = df_londonBike.rdd.getNumPartitions()
 set_log.logger.info("Partition Number for df_londonBike is: " + str(PartitionNumber))
 
-#definire il formato delle colonne
+# define the format of the columns
 df_londonBike = df_londonBike.withColumn("duration", df_londonBike["duration"].cast("double"))
 df_londonBike = df_londonBike.withColumn("rental_id", df_londonBike["rental_id"].cast("integer"))
 df_londonBike = df_londonBike.withColumn("bike_id", df_londonBike["bike_id"].cast("integer"))
@@ -47,7 +47,7 @@ df_londonBike = df_londonBike.withColumn("end_station_id", df_londonBike["end_st
 df_londonBike = df_londonBike.withColumn("start_rental_date_time", to_timestamp(col("start_rental_date_time")))
 df_londonBike = df_londonBike.withColumn("end_rental_date_time", to_timestamp(col("end_rental_date_time")))
 
-#scompongo le colonne timestamp in modo che mi consentano di fare delle analisi staistiche sul tempo
+# time stamp column decomposition for statistical analysis on time
 df_londonBike = df_londonBike.withColumn("start_day", to_date(col("start_rental_date_time")))
 df_londonBike = df_londonBike.withColumn('start_day_of_week', date_format('start_day', 'EEEE'))
 df_londonBike = df_londonBike.withColumn('start_month', date_format('start_day', 'MMMM'))
@@ -63,11 +63,11 @@ df_londonBike = df_londonBike.withColumn('duration_hour',round(col('duration')/3
 df_londonBike = df_londonBike.withColumn('duration_day',round(col('duration')/86400))
 
 
-# rimozione valori nulli
+# remove the null values
 df_londonBike_cl = df_londonBike.dropna()
 df_londonBike_cl = df_londonBike_cl.withColumn('end_station_name', trim(col('end_station_name')))
 df_londonBike_cl = df_londonBike_cl.withColumn('start_station_name', trim(col('start_station_name')))
-#rimozione spazi
+# remove spaces
 
 # crete new column in order to figure the time_of_day
 df_londonBike_cl = df_londonBike_cl.withColumn("time_of_day",
@@ -83,7 +83,7 @@ set_log.logger.info("TOP row for LondonBike Cleaned and Updated  \n"+ getShowStr
 # print schema df updated
 print(df_londonBike_cl.printSchema())
 
-## stampo le statistiche del set di dati pulito
+## print the statistics of the clean data set
 #df_londonBike_cl_sum = df_londonBike_cl.summary()
 #df_londonBike_cl_sum.show()
 
@@ -142,10 +142,10 @@ top30_link_cnt = spark.sql("SELECT COUNT(*) AS link_cnt, CONCAT(start_station_id
                           "GROUP BY start_station_id, end_station_id "
                           "ORDER BY link_cnt DESC LIMIT 30")
 
-PL_bar_top30_link_cnt = px.bar(top30_link_cnt, x='link', y='link_cnt', text_auto = True, labels = 'link', title = 'TOP 30 Link Station Count', color = 'link_cnt', color_continuous_scale='Bluered')
-PL_bar_top30_link_cnt.write_html(fld_image + '/top30_link_count.html')
+#PL_bar_top30_link_cnt = px.bar(top30_link_cnt, x='link', y='link_cnt', text_auto = True, labels = 'link', title = 'TOP 30 Link Station Count', color = 'link_cnt', color_continuous_scale='Bluered')
+#PL_bar_top30_link_cnt.write_html(fld_image + '/top30_link_count.html')
 
-set_log.logger.info("Plotted TOP 30 link count")
+#set_log.logger.info("Plotted TOP 30 link count")
 
 ## TOP 30 start start station most frequently used start station
 
@@ -154,10 +154,10 @@ top30_start_st_cnt = spark.sql("SELECT COUNT(*) AS start_station_cnt, start_stat
                           "GROUP BY start_station_name "
                           "ORDER BY start_station_cnt DESC LIMIT 30")
 
-PL_bar_top30_start_st_cnt = px.bar(top30_start_st_cnt, x='start_station_name', y='start_station_cnt', text_auto = True, labels = 'start_station_name', title = 'TOP 30 Start Station Count', color = 'start_station_cnt', color_continuous_scale='Bluered')
-PL_bar_top30_start_st_cnt.write_html(fld_image + '/top30_start_st_count.html')
+#PL_bar_top30_start_st_cnt = px.bar(top30_start_st_cnt, x='start_station_name', y='start_station_cnt', text_auto = True, labels = 'start_station_name', title = 'TOP 30 Start Station Count', color = 'start_station_cnt', color_continuous_scale='Bluered')
+#PL_bar_top30_start_st_cnt.write_html(fld_image + '/top30_start_st_count.html')
 
-set_log.logger.info("Plotted TOP 30 Start Station count")
+#set_log.logger.info("Plotted TOP 30 Start Station count")
 
 ## TOP 30 end start station most frequently used start station
 
@@ -166,10 +166,10 @@ top30_end_st_cnt = spark.sql("SELECT COUNT(*) AS end_station_cnt, end_station_na
                           "GROUP BY end_station_name "
                           "ORDER BY end_station_cnt DESC LIMIT 30")
 
-PL_bar_top30_end_st_cnt = px.bar(top30_end_st_cnt, x='end_station_name', y='end_station_cnt', text_auto = True, labels = 'end_station_name', title = 'TOP 30 End Station Count', color = 'end_station_cnt', color_continuous_scale='Bluered')
-PL_bar_top30_end_st_cnt.write_html(fld_image + '/top30_start_end_count.html')
+#PL_bar_top30_end_st_cnt = px.bar(top30_end_st_cnt, x='end_station_name', y='end_station_cnt', text_auto = True, labels = 'end_station_name', title = 'TOP 30 End Station Count', color = 'end_station_cnt', color_continuous_scale='Bluered')
+#PL_bar_top30_end_st_cnt.write_html(fld_image + '/top30_start_end_count.html')
 
-set_log.logger.info("Plotted TOP 30 End Station count")
+#set_log.logger.info("Plotted TOP 30 End Station count")
 
 ## Day Week Count
 st_day_week_cnt = spark.sql("SELECT COUNT(*) AS day_week_cnt,  start_day_of_week "
@@ -177,10 +177,10 @@ st_day_week_cnt = spark.sql("SELECT COUNT(*) AS day_week_cnt,  start_day_of_week
                           "GROUP BY start_day_of_week "
                           "ORDER BY day_week_cnt DESC ")
 
-PL_bar_day_week_cnt = px.bar(st_day_week_cnt, x='start_day_of_week', y='day_week_cnt', text_auto = True, labels = 'start_day_of_week', title = 'Start Day of Week Count', color = 'day_week_cnt', color_continuous_scale='Bluered')
-PL_bar_day_week_cnt.write_html(fld_image + '/st_day_week_count.html')
+#PL_bar_day_week_cnt = px.bar(st_day_week_cnt, x='start_day_of_week', y='day_week_cnt', text_auto = True, labels = 'start_day_of_week', title = 'Start Day of Week Count', color = 'day_week_cnt', color_continuous_scale='Bluered')
+#PL_bar_day_week_cnt.write_html(fld_image + '/st_day_week_count.html')
 
-set_log.logger.info("Plotted Start Day Week Count")
+#set_log.logger.info("Plotted Start Day Week Count")
 
 ## Month Count
 st_month_cnt = spark.sql("SELECT COUNT(*) start_month_cnt,  start_month "
@@ -188,10 +188,10 @@ st_month_cnt = spark.sql("SELECT COUNT(*) start_month_cnt,  start_month "
                           "GROUP BY start_month "
                           "ORDER BY start_month_cnt DESC ")
 
-PL_bar_st_month_cnt = px.bar(st_month_cnt, x='start_month', y='start_month_cnt', text_auto = True, labels = 'start_month', title = 'Start Month Count', color = 'start_month_cnt', color_continuous_scale='Bluered')
-PL_bar_st_month_cnt.write_html(fld_image + '/st_month_count.html')
+#PL_bar_st_month_cnt = px.bar(st_month_cnt, x='start_month', y='start_month_cnt', text_auto = True, labels = 'start_month', title = 'Start Month Count', color = 'start_month_cnt', color_continuous_scale='Bluered')
+#PL_bar_st_month_cnt.write_html(fld_image + '/st_month_count.html')
 
-set_log.logger.info("Plotted Start Month Week Count")
+#set_log.logger.info("Plotted Start Month Week Count")
 
 ## Day Week Frequency
 st_day_week_frq = st_day_week_cnt.withColumn('frequency_day', col("day_week_cnt") / df_londonBike_cnt)
@@ -201,8 +201,6 @@ set_log.logger.info("Day Week Frequency is  \n"+ getShowStringForLog(st_day_week
 st_month_frq = st_month_cnt.withColumn('frequency_month', col("start_month_cnt") / df_londonBike_cnt)
 set_log.logger.info("Month Frequency is   \n"+ getShowStringForLog(st_month_frq))
 
-#voglio creare delle fascie orarie e vedere in quale fascia oraria vi è più utilizzo de servizio  #da capire come mettere l'orario #fallocon with column
-#crea una colonna fascia oraria
 
 
 ## median for duration in minutes (le ore erano a 0)
@@ -216,10 +214,10 @@ mean_month_duration = df_londonBike_cl.groupBy("start_month").avg("duration_hour
 mean_month_duration = mean_month_duration.withColumnRenamed('avg(duration_hour)', 'mean_month_duration_hour')
 mean_month_duration = mean_month_duration.orderBy('mean_month_duration_hour')
 
-PL_bar_month_duration_mean = px.bar(mean_month_duration, x='start_month', y='mean_month_duration_hour', text_auto = True, labels = 'start_month', title = 'Mean Duration for each Month', color = 'mean_month_duration_hour', color_continuous_scale='Bluered')
-PL_bar_month_duration_mean.write_html(fld_image + '/month_duration_mean.html')
+#PL_bar_month_duration_mean = px.bar(mean_month_duration, x='start_month', y='mean_month_duration_hour', text_auto = True, labels = 'start_month', title = 'Mean Duration for each Month', color = 'mean_month_duration_hour', color_continuous_scale='Bluered')
+#PL_bar_month_duration_mean.write_html(fld_image + '/month_duration_mean.html')
 
-set_log.logger.info("Plotted Mean Dusration for each Month")
+#set_log.logger.info("Plotted Mean Dusration for each Month")
 
 
 # drop temporary view
