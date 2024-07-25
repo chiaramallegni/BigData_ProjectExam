@@ -1,5 +1,4 @@
-from FolderUtilities import *
-
+from utilities import *
 #mode for crete folder
 mode = 0o666
 

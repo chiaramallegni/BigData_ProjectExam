@@ -1,4 +1,5 @@
 import os
+from graphframes import GraphFrame
 
 
 class FolderUtilities:
@@ -6,7 +7,6 @@ class FolderUtilities:
         self.parent_dir=parent_dir
         self.folder=folder
         self.mode=mode
-
 
 # create folder if not exist
 def create_folder(parent_dir, folder, mode):
@@ -18,6 +18,9 @@ def create_folder(parent_dir, folder, mode):
         print("Directory '%s' created" % directory)
     return directory
 
+class LogString:
+    def __init__(self, df):
+        self.df=df
 
 def getShowStringForLog(df, n=20, truncate=True, vertical=False):
     if isinstance(truncate, bool) and truncate:
@@ -26,3 +29,15 @@ def getShowStringForLog(df, n=20, truncate=True, vertical=False):
         return(df._jdf.showString(n, int(truncate), vertical))
 
 
+class GraphUtilities:
+    def __init__(self, gdf, e):
+        self.gdf=gdf
+        self.e=e
+
+def gen_graph_from_edgeList (slef, e):
+    v = e \
+        .select('src') \
+        .union(e.select('dst')) \
+        .distinct() \
+        .withColumnRenamed('src', 'id')
+    return GraphFrame(v,e)

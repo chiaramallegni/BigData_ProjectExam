@@ -1,6 +1,7 @@
 #import librerie esterne
 import pandas as pd
 import geopandas as gpd
+import plotly.express as px
 import matplotlib.pyplot as plt
 import set_log
 
@@ -36,7 +37,7 @@ gdf_london_stations = gpd.GeoDataFrame(df_london_stations, crs='EPSG:4326', geom
 print(gdf_london_stations.info())
 
 # lettura shp file dei building di londra
-print('Sto leggendo lo shp file dei buildings di londra')
+print('Reading London buildings')
 gdf_london_buildings = gpd.read_file(zip_london_buildings)
 print('Shp buildings di londra letto:  ')
 print(gdf_london_buildings.info())
