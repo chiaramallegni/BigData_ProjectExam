@@ -5,7 +5,7 @@ import sys
 from variables_and_path import *
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 time=datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
 log_path = fld_log + '\\'+time
 

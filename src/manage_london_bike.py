@@ -5,7 +5,6 @@ import logging
 import datetime
 import os
 
-
 from pyspark.sql import SparkSession
 from pyspark import SparkContext, StorageLevel
 from pyspark.sql.types import *
@@ -18,23 +17,21 @@ from shapely.geometry import Point, Polygon, shape # creating geospatial data
 from shapely import wkb, wkt # creating and parsing geospatial data
 
 # import classi interne
-import variables_and_path
 from variables_and_path import *
 import set_log
+import utilities
 
 set_log.logger.info("-- SPARK SESSION --")
 
 spark = SparkSession.builder.getOrCreate()
 sc = SparkContext.getOrCreate()
-set_log.logger.info("Avviata sessione spark")
+set_log.logger.info("Spark Session started")
 
-
-#from espl_london_bike import *
 
 df_londonBike = spark.read.option("delimiter", ",").option("header", True).csv(londonBike)
 set_log.logger.info("TOP row for LondonBike  \n"+ getShowStringForLog(df_londonBike))
 
-# verifyng number of partition
+# checking number of partition
 PartitionNumber = df_londonBike.rdd.getNumPartitions()
 set_log.logger.info("Partition Number for df_londonBike is: " + str(PartitionNumber))
 
@@ -65,9 +62,11 @@ df_londonBike = df_londonBike.withColumn('duration_day',round(col('duration')/86
 
 # remove the null values
 df_londonBike_cl = df_londonBike.dropna()
+
+# remove spaces
 df_londonBike_cl = df_londonBike_cl.withColumn('end_station_name', trim(col('end_station_name')))
 df_londonBike_cl = df_londonBike_cl.withColumn('start_station_name', trim(col('start_station_name')))
-# remove spaces
+
 
 # crete new column in order to figure the time_of_day
 df_londonBike_cl = df_londonBike_cl.withColumn("time_of_day",
@@ -83,11 +82,12 @@ set_log.logger.info("TOP row for LondonBike Cleaned and Updated  \n"+ getShowStr
 # print schema df updated
 print(df_londonBike_cl.printSchema())
 
-## print the statistics of the clean data set
-#df_londonBike_cl_sum = df_londonBike_cl.summary()
-#df_londonBike_cl_sum.show()
+# print the statistics of the clean data set
+# df_londonBike_cl_sum = df_londonBike_cl.summary()
+# df_londonBike_cl_sum.show()
 
-df_londonBike = df_londonBike.repartition(70)
+# modifing repartition
+df_londonBike_cl = df_londonBike_cl.repartition(70)
 
 # crete view
 df_londonBike_cl.createOrReplaceTempView("VIEW_df_londonBike_cl")
@@ -110,7 +110,7 @@ set_log.logger.info("London Bike Count is: " + str(df_londonBike_cnt))
 #unique_count = df_londonBike_cl.select("rental_id").distinct().count()
 #print(f"Numero di valori unici nella colonna 'rental_id': {unique_count}")
 
-#### with spark distinct 2
+### with spark distinct 2
 #df_londonBike_cl.select(count_distinct(col("rental_id"))).show()
 
 
@@ -127,8 +127,10 @@ set_log.logger.info("London Bike stddev is  \n"+ getShowStringForLog(df_stddev_d
 df_variance_duration= df_londonBike_cl.select(variance(col("duration_hour")))
 set_log.logger.info("London Bike variance is  \n"+ getShowStringForLog(df_variance_duration))
 
-## correlation between start station and end station - result:  0.2531953725202463
-df_londonBike_cl.corr("start_station_id", "end_station_id")
+## correlation between start station and end station
+st_end_corr= df_londonBike_cl.corr("start_station_id", "end_station_id")
+set_log.logger.info("Start and End Station correlation is  \n"+ str(st_end_corr))
+
 ## correlation between..... - rivedere
 df_londonBike_cl.corr("start_hour", "duration_hour")
 df_londonBike_cl.corr("start_hour", "start_station_id")
@@ -142,34 +144,54 @@ top30_link_cnt = spark.sql("SELECT COUNT(*) AS link_cnt, CONCAT(start_station_id
                           "GROUP BY start_station_id, end_station_id "
                           "ORDER BY link_cnt DESC LIMIT 30")
 
-#PL_bar_top30_link_cnt = px.bar(top30_link_cnt, x='link', y='link_cnt', text_auto = True, labels = 'link', title = 'TOP 30 Link Station Count', color = 'link_cnt', color_continuous_scale='Bluered')
-#PL_bar_top30_link_cnt.write_html(fld_image + '/top30_link_count.html')
+PL_bar_top30_link_cnt = px.bar(top30_link_cnt, x='link', y='link_cnt',
+                               text_auto = True, labels = 'link',
+                               title = 'TOP 30 Link Station Count',
+                               color = 'link_cnt',
+                               color_continuous_scale='Bluered')
 
-#set_log.logger.info("Plotted TOP 30 link count")
+PL_bar_top30_link_cnt.write_html(fld_image + '/top30_link_count.html')
+#PL_bar_top30_link_cnt.write_image(fld_image + '/top30_link_count.png')
 
-## TOP 30 start start station most frequently used start station
+set_log.logger.info("Plotted TOP 30 link count")
+
+## TOP 30 start station most frequently used
 
 top30_start_st_cnt = spark.sql("SELECT COUNT(*) AS start_station_cnt, start_station_name "
                           "FROM VIEW_df_londonBike_cl "
                           "GROUP BY start_station_name "
                           "ORDER BY start_station_cnt DESC LIMIT 30")
 
-#PL_bar_top30_start_st_cnt = px.bar(top30_start_st_cnt, x='start_station_name', y='start_station_cnt', text_auto = True, labels = 'start_station_name', title = 'TOP 30 Start Station Count', color = 'start_station_cnt', color_continuous_scale='Bluered')
-#PL_bar_top30_start_st_cnt.write_html(fld_image + '/top30_start_st_count.html')
+PL_bar_top30_start_st_cnt = px.bar(top30_start_st_cnt, x='start_station_name', y='start_station_cnt',
+                                   text_auto = True,
+                                   labels = 'start_station_name',
+                                   title = 'TOP 30 Start Station Count',
+                                   color = 'start_station_cnt',
+                                   color_continuous_scale='Bluered')
 
-#set_log.logger.info("Plotted TOP 30 Start Station count")
+PL_bar_top30_start_st_cnt.write_html(fld_image + '/top30_start_st_count.html')
+#PL_bar_top30_start_st_cnt.write_image(fld_image + '/top30_start_st_count.png')
 
-## TOP 30 end start station most frequently used start station
+set_log.logger.info("Plotted TOP 30 Start Station count")
+
+## TOP 30 end start station most frequently used
 
 top30_end_st_cnt = spark.sql("SELECT COUNT(*) AS end_station_cnt, end_station_name "
                           "FROM VIEW_df_londonBike_cl "
                           "GROUP BY end_station_name "
                           "ORDER BY end_station_cnt DESC LIMIT 30")
 
-#PL_bar_top30_end_st_cnt = px.bar(top30_end_st_cnt, x='end_station_name', y='end_station_cnt', text_auto = True, labels = 'end_station_name', title = 'TOP 30 End Station Count', color = 'end_station_cnt', color_continuous_scale='Bluered')
-#PL_bar_top30_end_st_cnt.write_html(fld_image + '/top30_start_end_count.html')
+PL_bar_top30_end_st_cnt = px.bar(top30_end_st_cnt, x='end_station_name', y='end_station_cnt',
+                                 text_auto = True,
+                                 labels = 'end_station_name',
+                                 title = 'TOP 30 End Station Count',
+                                 color = 'end_station_cnt',
+                                 color_continuous_scale='Bluered')
 
-#set_log.logger.info("Plotted TOP 30 End Station count")
+PL_bar_top30_end_st_cnt.write_html(fld_image + '/top30_start_end_count.html')
+#PL_bar_top30_end_st_cnt.write_image(fld_image + '/top30_start_end_count.png')
+
+set_log.logger.info("Plotted TOP 30 End Station count")
 
 ## Day Week Count
 st_day_week_cnt = spark.sql("SELECT COUNT(*) AS day_week_cnt,  start_day_of_week "
@@ -177,10 +199,17 @@ st_day_week_cnt = spark.sql("SELECT COUNT(*) AS day_week_cnt,  start_day_of_week
                           "GROUP BY start_day_of_week "
                           "ORDER BY day_week_cnt DESC ")
 
-#PL_bar_day_week_cnt = px.bar(st_day_week_cnt, x='start_day_of_week', y='day_week_cnt', text_auto = True, labels = 'start_day_of_week', title = 'Start Day of Week Count', color = 'day_week_cnt', color_continuous_scale='Bluered')
-#PL_bar_day_week_cnt.write_html(fld_image + '/st_day_week_count.html')
+PL_bar_day_week_cnt = px.bar(st_day_week_cnt, x='start_day_of_week', y='day_week_cnt',
+                             text_auto = True,
+                             labels = 'start_day_of_week',
+                             title = 'Start Day of Week Count',
+                             color = 'day_week_cnt',
+                             color_continuous_scale='Bluered')
 
-#set_log.logger.info("Plotted Start Day Week Count")
+PL_bar_day_week_cnt.write_html(fld_image + '/st_day_week_count.html')
+#PL_bar_day_week_cnt.write_image(fld_image + '/st_day_week_count.png')
+
+set_log.logger.info("Plotted Start Day Week Count")
 
 ## Month Count
 st_month_cnt = spark.sql("SELECT COUNT(*) start_month_cnt,  start_month "
@@ -188,37 +217,74 @@ st_month_cnt = spark.sql("SELECT COUNT(*) start_month_cnt,  start_month "
                           "GROUP BY start_month "
                           "ORDER BY start_month_cnt DESC ")
 
-#PL_bar_st_month_cnt = px.bar(st_month_cnt, x='start_month', y='start_month_cnt', text_auto = True, labels = 'start_month', title = 'Start Month Count', color = 'start_month_cnt', color_continuous_scale='Bluered')
-#PL_bar_st_month_cnt.write_html(fld_image + '/st_month_count.html')
+PL_bar_st_month_cnt = px.bar(st_month_cnt, x='start_month', y='start_month_cnt',
+                             text_auto = True,
+                             labels = 'start_month',
+                             title = 'Start Month Count',
+                             color = 'start_month_cnt',
+                             color_continuous_scale='Bluered')
 
-#set_log.logger.info("Plotted Start Month Week Count")
+PL_bar_st_month_cnt.write_html(fld_image + '/st_month_count.html')
+#PL_bar_st_month_cnt.write_image(fld_image + '/st_month_count.png')
+
+set_log.logger.info("Plotted Start Month Count")
 
 ## Day Week Frequency
 st_day_week_frq = st_day_week_cnt.withColumn('frequency_day', col("day_week_cnt") / df_londonBike_cnt)
 set_log.logger.info("Day Week Frequency is  \n"+ getShowStringForLog(st_day_week_frq))
 
-## MonthFrequency
+## Month Frequency
 st_month_frq = st_month_cnt.withColumn('frequency_month', col("start_month_cnt") / df_londonBike_cnt)
 set_log.logger.info("Month Frequency is   \n"+ getShowStringForLog(st_month_frq))
 
+## Date cnt
+date_cnt = spark.sql("SELECT COUNT(*) start_day_cnt,  start_day "
+                          "FROM VIEW_df_londonBike_cl "
+                          "GROUP BY start_day "
+                        "ORDER BY start_day")
+date_cnt.show()
+PL_line_date_cnt = px.line(date_cnt, x="start_day", y="start_day_cnt",
+                             title = 'Count Day Runs Over Time',
+                            hover_data= {"start_day":"|%B %d, %Y"})
+PL_line_date_cnt.update_traces(mode="markers",
+                           marker_size=7,
+                           marker_color="red"
+                           #line_color = "black")
+                               )
+PL_line_date_cnt.update_xaxes(dtick="M1",
+                         tickformat="%b\%Y",
+                         ticks="inside",
+                         ticklen=2)
+
+PL_line_date_cnt.write_html(fld_image + '/cnt_day_runs_over_time.html')
+#PL_line_date_cnt.write_image(fld_image + '/cnt_day_runs_over_time.png')
+
+set_log.logger.info("Ploted Count Day Runs Over Time")
 
 
-## median for duration in minutes (le ore erano a 0)
+## median for duration in minutes
 median_duration_hour = df_londonBike_cl.agg(median("duration_min")).collect()[0][0]
 
-# ho preso le stazioni più utilizzate legate alla duration
+## Most used stations related to median duration
 max_duration = df_londonBike_cl.filter((col("duration_hour")) > median_duration_hour).select(col("start_station_id"), col("end_station_id"))
 set_log.logger.info("Max Duration Station is  \n"+ getShowStringForLog(max_duration))
 
+## Mean duration for each month
 mean_month_duration = df_londonBike_cl.groupBy("start_month").avg("duration_hour")
 mean_month_duration = mean_month_duration.withColumnRenamed('avg(duration_hour)', 'mean_month_duration_hour')
 mean_month_duration = mean_month_duration.orderBy('mean_month_duration_hour')
 
-#PL_bar_month_duration_mean = px.bar(mean_month_duration, x='start_month', y='mean_month_duration_hour', text_auto = True, labels = 'start_month', title = 'Mean Duration for each Month', color = 'mean_month_duration_hour', color_continuous_scale='Bluered')
-#PL_bar_month_duration_mean.write_html(fld_image + '/month_duration_mean.html')
+PL_bar_month_duration_mean = px.bar(mean_month_duration, x='start_month', y='mean_month_duration_hour',
+                                    text_auto = True,
+                                    labels = 'start_month',
+                                    title = 'Mean Duration for each Month',
+                                    color = 'mean_month_duration_hour',
+                                    color_continuous_scale='Bluered')
 
-#set_log.logger.info("Plotted Mean Dusration for each Month")
+PL_bar_month_duration_mean.write_html(fld_image + '/month_duration_mean.html')
+#PL_bar_month_duration_mean.write_image(fld_image + '/month_duration_mean.png')
 
+set_log.logger.info("Plotted Mean Duration for each Month")
 
 # drop temporary view
 spark.catalog.dropTempView("VIEW_df_londonBike_cl")
@@ -226,15 +292,16 @@ spark.catalog.dropTempView("VIEW_df_londonBike_cl")
 set_log.logger.info("Droped temporary VIEW_df_londonBike_cl")
 
 
-set_log.logger.info ("-- JOIN BLONDON BIKE GEODATA--")
+set_log.logger.info("-- JOIN BLONDON BIKE GEODATA--")
 
-# importo i dati geografici creati
+# Import geo data
 if os.path.exists(data_subfoler + "gfd_buildings_200m.csv"):
-   print("i csv from geodata sono stati già generati")
+   set_log.logger.info("The geodata csv already created")
 else:
-   print("genero geodata sono stati già generati con manage_geodata")
+   set_log.logger.info(" start create create and manage geodata ")
    from manage_geodata import *
 
+# crete df geo data
 sdf_buildings_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gfd_buildings_200m.csv")
 sdf_london_pois_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gdf_london_pois_200m.csv")
 sdf_london_railway_station_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gdf_london_railway_station_200m.csv")
@@ -243,16 +310,11 @@ sdf_buildings_200m.printSchema()
 sdf_london_pois_200m.printSchema()
 sdf_london_railway_station_200m.printSchema()
 
-
-station_poist_cnt = sdf_london_pois_200m.groupBy(col('fclass'), col('station_id')).count().orderBy(col('station_id').desc())
+# crete df geo data
+station_pois_cnt = sdf_london_pois_200m.groupBy(col('fclass'), col('station_id')).count().orderBy(col('station_id').desc())
 #station_poist_cnt.show()
-station_poist_dst = sdf_london_pois_200m.select(col("fclass")).distinct().show()
+station_pois_dst = sdf_london_pois_200m.select(col("fclass")).distinct()
 
-station_poist_dst = sdf_london_pois_200m.distinct("fclass").count().show()
-
-sdf_london_pois_200m.createOrReplaceTempView("V_london_pois_200m")
-spark.sql("SELECT DISTINCT fclass FROM V_london_pois_200m").count()
-station_poist_dst.count()
 
 sdf_london_pois_200mgp = sdf_london_pois_200m.groupBy(col('station_id'), col('fclass')).count()
 
