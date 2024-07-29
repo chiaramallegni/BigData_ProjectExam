@@ -46,7 +46,7 @@ spark = SparkSession.builder.master("local").appName("London Bike Analysis").get
 
 df_londonBike_cl = ExectuteDfManage.manage_londonBike(londonBike, spark, my_log.logger)
 
-m
+
 df_londonBike_cl = df_londonBike_cl.repartition(70)
 
 
