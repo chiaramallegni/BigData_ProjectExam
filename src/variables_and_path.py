@@ -1,14 +1,17 @@
-from utilities import *
+from utilities import Utilities
+import os
 #mode for crete folder
-mode = 0o666
+mode_cf = 0o666
+
+my_ut = Utilities()
 
 # parent drirectory project
 parent_dir = '../' # il . sta per la cartella sopra (. = 1 cartella sopra, .. 2 cartelle sopra)
 
 # project folder
-fld_data = create_folder(parent_dir,'data',mode)
-fld_image = create_folder(parent_dir,'exp_image',mode)
-fld_log = create_folder(parent_dir,'log',mode)
+fld_data = my_ut.create_folder(parent_dir,'data',mode_cf)
+fld_image = my_ut.create_folder(parent_dir,'exp_image',mode_cf)
+fld_log = my_ut.create_folder(parent_dir,'log',mode_cf)
 
 
 # data paths
@@ -32,4 +35,3 @@ zip_london_railway = data_subfoler + 'gis_osm_railways_free_1.zip'
 
 #raggio di buffer per le stazioni in metri
 radius = 200
-
