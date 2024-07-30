@@ -46,10 +46,10 @@ Mylog.logger.info("Plotted Start Day Week Frequency")
 PL_bar_st_month_frq = Plotting.bar_plot_blured(st_month_frq, 'start_month', 'frequency_month', 'Start Month Frequency', fld_image, '/st_month_frq.html')
 Mylog.logger.info("Plotted Start Month Frequency")
 ## plot 6 - Start Time if Day Frquency
-PL_bar_st_start_time_frq = Plotting.bar_plot_blured(st_start_time_frq, 'start_time_of_day', 'frequency_time', 'Start Time if day Frequency', fld_image, '/st_start_time_of_day_frq.html')
+PL_bar_st_start_time_frq = Plotting.bar_plot_blured(st_start_time_frq, 'start_time_of_day', 'frequency_time', 'Start Time of day Frequency', fld_image, '/st_start_time_of_day_frq.html')
 Mylog.logger.info("Plotted Start Time of Day Frequency")
 ## plot 7 - End Time if Day Frquency
-PL_bar_st_end_time_frq = Plotting.bar_plot_blured(st_end_time_frq, 'end_time_of_day', 'frequency_time', 'End Time if day Frequency', fld_image, '/st_end_time_of_day_frq.html')
+PL_bar_st_end_time_frq = Plotting.bar_plot_blured(st_end_time_frq, 'end_time_of_day', 'frequency_time', 'End Time of day Frequency', fld_image, '/st_end_time_of_day_frq.html')
 Mylog.logger.info("Plotted Start Time of Day Frequency")
 ## plot 8 - Mean duration for each month
 PL_bar_mean_month_duration = Plotting.bar_plot_blured(mean_month_duration, 'start_month', 'mean_month_duration_hour', 'Mean Duration for Month', fld_image, '/mean_month_duration.html')

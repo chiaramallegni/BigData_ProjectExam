@@ -54,7 +54,7 @@ I seguenti contengono classi e funzioni o sono richiamati all'interno dei .py
  
 -1 main
 -2 dashboard
--3 e 4 possono essere eseguiti in maniera indipendente. 
+-3 e 4 possono essere eseguiti in maniera indipendente a seguito del main. 
 
 
 ### Altre note imporatnti :
