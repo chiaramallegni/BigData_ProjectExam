@@ -1,4 +1,4 @@
-#import librerie esterne
+#import external libraries
 import shutil
 from tkinter import filedialog as fd
 
@@ -7,7 +7,7 @@ from pyspark.sql import SparkSession
 from pyspark import SparkContext, StorageLevel
 from pyspark.sql.functions import *
 
-# import classi interne
+# import internal classes
 
 from set_log import MyLogger
 from df_cleaning_and_manage import ExectuteDfManage
@@ -134,7 +134,7 @@ my_log.logger.info ("-- SPARK QUERIRS JOIN GEODATA --")
 gdf_london_pois_200m = Buffer_sp.buffer_sp(londonStation, zip_london_pois, my_log.logger, radius, data_subfoler)
 my_log.logger.info (" Spatial Join exectuted")
 
-# Create df geo data --non passo direttamente da spark vrso pandas perchè è molo lento e alcune volte va in ou of memory
+# Create df geo data --I don’t go directly from spark to pandas because it’s slow and sometimes goes out of memory
 sdf_london_pois_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gdf_london_pois_200m.csv")
 sdf_london_pois_200m.printSchema()
 my_log.logger.info ("Spark dataframe London Point Interest close to station created")

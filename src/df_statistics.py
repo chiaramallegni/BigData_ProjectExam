@@ -47,10 +47,8 @@ df_londonBike_cl.summary()
 ## var of duration
 df_londonBike_cl.select(variance(col("duration_hour")))
 
-## correlation between start station and end station
+## correlation
 df_londonBike_cl.corr("start_station_id", "end_station_id")
-
-## correlation between..... -
 df_londonBike_cl.corr("start_hour", "duration_hour")
 df_londonBike_cl.corr("start_hour", "start_station_id")
 df_londonBike_cl.corr("end_hour", "end_station_id")

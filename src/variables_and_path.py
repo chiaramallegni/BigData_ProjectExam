@@ -5,8 +5,8 @@ mode_cf = 0o666
 
 my_ut = Utilities()
 
-# parent drirectory project
-parent_dir = '../' # il . sta per la cartella sopra (. = 1 cartella sopra, .. 2 cartelle sopra)
+# parent directory project
+parent_dir = '../' # the . stands for folder above (. = 1 folder above, .. 2 folder below)
 
 # project folder
 fld_data = my_ut.create_folder(parent_dir,'data',mode_cf)
@@ -19,9 +19,9 @@ fld_log = my_ut.create_folder(parent_dir,'log',mode_cf)
 ## name subfolder post unzip data file
 data_subfoler = fld_data + '/london_bike/'
 
-# csv corse bike sharing
+# csv rides bike sharing
 londonBike = data_subfoler + 'london.csv'
-# csv coordinate stazioni bike sharing
+# csv bike sharing stations coordinates
 londonStation = data_subfoler + 'london_stations.csv'
 # zip shp file london building
 
@@ -33,5 +33,5 @@ zip_london_railway_station = data_subfoler + 'gis_osm_transport_free_1_railway_s
 # zip shp file london railways station
 zip_london_railway = data_subfoler + 'gis_osm_railways_free_1.zip'
 
-#raggio di buffer per le stazioni in metri
+#buffer radius for stations in metres
 radius = 200

@@ -14,7 +14,7 @@ class Buffer_sp:
 
         logger.info('Created Geodata Buiffer Station from station point')
 
-        # Creat GeoDataFrame Spatial Join for point of interset close  200 from station id
+        # Create GeoDataFrame Spatial Join for point of interest close  200 from station id
 
         gdf_london_pois_200m = gpd.sjoin(gdf_london_pois_prj, gdf_london_buffer_stations, how='inner', predicate='intersects')
 

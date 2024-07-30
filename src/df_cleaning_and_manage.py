@@ -15,7 +15,7 @@ class ExectuteDfManage:
         # checking number of partition
 
 
-        # define the format of the columns
+        # definition of the column format
         df_londonBike = df_londonBike.withColumn("duration", df_londonBike["duration"].cast("double"))
         df_londonBike = df_londonBike.withColumn("rental_id", df_londonBike["rental_id"].cast("integer"))
         df_londonBike = df_londonBike.withColumn("bike_id", df_londonBike["bike_id"].cast("integer"))
@@ -47,7 +47,7 @@ class ExectuteDfManage:
         df_londonBike_cl = df_londonBike_cl.withColumn('start_station_name', trim(col('start_station_name')))
 
 
-        # crete new column in order to figure the time_of_day
+        # create new column in order to figure the time_of_day
         df_londonBike_cl = df_londonBike_cl.withColumn("start_time_of_day",
                                     when((col("start_hour") > 5) & (col("start_hour") <= 11), "morning").\
                                     when((col("start_hour") > 11) & (col("start_hour") <= 14), "lunch").\

@@ -1,4 +1,4 @@
-#import librerie esterne
+#import external libraries
 import pandas as pd
 import geopandas as gpd
 
@@ -13,10 +13,10 @@ class ExectuteGDfManage:
         logger.info('Created : df london_stations')
         logger.info('dataframe head 5 - {}'.format(df_london_stations.head(5)))
 
-        # verifing null value
+        # verify null value
         logger.info('Valori null = {}'.format(df_london_stations.loc[:, df_london_stations.isnull().any()].columns))
 
-        # verifing unique value
+        # verify unique value
         station_id_exist = df_london_stations.station_id.is_unique
         station_name_dup_exist = df_london_stations.station_name.is_unique
         longitude_dup_exist = df_london_stations.longitude.is_unique

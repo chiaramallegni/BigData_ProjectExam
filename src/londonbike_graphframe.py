@@ -13,13 +13,13 @@ my_log.logger.info("-- START GRAPH FRAME --")
 
 spark = SparkSession.builder.master("local").appName("London Bike Graph Frame").getOrCreate()
 
-# GRAPHFRAME
+# GRAPHFRAMES
 df_londonBike_cl = ExectuteDfManage.manage_londonBike(londonBike, spark, my_log.logger)
 
 df_edge = df_londonBike_cl.groupBy(col('start_station_id'), col('end_station_id')).count().alias('bike_run_count')
 #df_edge  = df_edge.filter(col("start_station_id") != col("end_station_id"))
 
-#assegna un nuovo nome alle colonne
+#assignment a new name to the columns
 df_edge = df_edge.withColumnRenamed('start_station_id', 'src')
 df_edge = df_edge.withColumnRenamed('end_station_id', 'dst')
 df_edge = df_edge.withColumnRenamed('count', 'weight')

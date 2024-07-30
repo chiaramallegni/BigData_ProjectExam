@@ -16,32 +16,32 @@ class MyLogger:
         if not os.path.exists(log_path):
             os.makedirs(log_path)
 
-        # Crea un gestore per lo standard output
+        # Create a handler for the standard output
         stdout_handler = logging.StreamHandler(sys.stdout)
         stdout_handler.setLevel(logging.DEBUG)
 
-        # Formatta i messaggi di log
+        # Format the log messages
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         stdout_handler.setFormatter(formatter)
 
-        # Aggiungi il gestore di stdout al logger radice
+        # Add the stdout handler to root logger
 
-        # gestore per scrivere su console
+        # Handler to write on console
         self.logger.addHandler(stdout_handler)
 
-        # Crea un gestore per il file di log di debug
+        # Create a handler for the debug log file
         debug_file_handler = logging.FileHandler(log_path+'\\debug.log')
         debug_file_handler.setLevel(logging.DEBUG)
         debug_file_handler.setFormatter(formatter)
         self.logger.addHandler(debug_file_handler)
 
-        # Crea un gestore per il file di log di info
+        # Create a handler for the info log file
         info_file_handler = logging.FileHandler(log_path+'\\info.log')
         info_file_handler.setLevel(logging.INFO)
         info_file_handler.setFormatter(formatter)
         self.logger.addHandler(info_file_handler)
 
-        # Crea un gestore per il file di log di errore
+        # Create a handler for the error log file
         error_file_handler = logging.FileHandler(log_path+'\\error.log')
         error_file_handler.setLevel(logging.ERROR)
         error_file_handler.setFormatter(formatter)
