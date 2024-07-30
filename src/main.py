@@ -40,14 +40,9 @@ else:
 spark = SparkSession.builder.master("local").appName("London Bike Analysis").getOrCreate()
 
 
-#conf = pyspark.SparkConf().setMaster("local[2]").setAppName("London Bike Analysis").setAll([("spark.driver.memory", "40g"), ("spark.executor.memory", "50g")])
-#sc = SparkContext.getOrCreate(conf=conf)
-#sqlC = SQLContext(sc)
-
 df_londonBike_cl = ExectuteDfManage.manage_londonBike(londonBike, spark, my_log.logger)
-
-m
 df_londonBike_cl = df_londonBike_cl.repartition(70)
+
 
 
 my_log.logger.info ("-- SPARK QUERIES --")
@@ -187,12 +182,36 @@ my_log.logger.info ("Mode created")
 
 # Join Data of mode of start and time with geodata station point xy
 gpd_london_station_xy = ExectuteGDfManage.gdf_london_station(londonStation, my_log.logger)
+gpd_london_station_xy["station_id"] = gpd_london_station_xy["station_id"].astype(int)
 
 gpd_london_stat_xy_j_time_start = gpd_london_station_xy.merge(mode_start_time_pd, how='inner', left_on='station_id', right_on='start_station_id')
 gpd_london_stat_xy_j_time_end = gpd_london_station_xy.merge(mode_end_time_pd, how='inner', left_on='station_id', right_on='end_station_id')
 
 gpd_london_stat_xy_j_time_start.to_csv(data_subfoler + "to_plt_london_station_xy_j_start_time.csv")
 gpd_london_stat_xy_j_time_end.to_csv(data_subfoler + "to_plt_london_station_xy_j_end_time.csv")
+
+# Join time of day count with station point xy
+df_londonBike_cl_start_time_day_cnt = df_londonBike_cl.groupBy("start_station_id", "start_station_name", "start_time_of_day").count()
+df_londonBike_cl_start_time_day_cnt_pd = df_londonBike_cl_start_time_day_cnt.toPandas()
+df_londonBike_cl_start_time_day_cnt_pd = df_londonBike_cl_start_time_day_cnt_pd.merge(gpd_london_station_xy, how='inner', left_on='start_station_id', right_on='station_id')
+df_londonBike_cl_start_time_day_cnt_pd.to_csv(data_subfoler + "to_plt_start_time_of_day_station_sizing.csv")
+my_log.logger.info ("csv to_plt_start_time_of_day_station_sizing created")
+
+df_londonBike_cl_end_time_day_cnt = df_londonBike_cl.groupBy("end_station_id", "end_station_name", "end_time_of_day").count()
+df_londonBike_cl_end_time_day_cnt_pd = df_londonBike_cl_end_time_day_cnt.toPandas()
+df_londonBike_cl_end_time_day_cnt_pd = df_londonBike_cl_end_time_day_cnt_pd.merge(gpd_london_station_xy, how='inner', left_on='end_station_id', right_on='station_id')
+df_londonBike_cl_end_time_day_cnt_pd.to_csv(data_subfoler + "to_plt_end_time_of_day_station_sizing.csv")
+my_log.logger.info ("csv to_plt_end_time_of_day_station_sizing created")
+
+
+# Join london point of interest with station point xy
+
+sdf_london_pois_200m_cnt = sdf_london_pois_200m.groupBy("station_id", "station_name", "building_category").count()
+sdf_london_pois_200m_cnt_pd = sdf_london_pois_200m_cnt.toPandas()
+sdf_london_pois_200m_cnt_pd["station_id"] = sdf_london_pois_200m_cnt_pd["station_id"].astype(str)
+sdf_london_pois_200m_cnt_pd = sdf_london_pois_200m_cnt_pd.merge(gpd_london_station_xy, how='inner', left_on='station_id', right_on='station_id')
+sdf_london_pois_200m_cnt_pd.to_csv(data_subfoler + "to_plt_london_pois_Station_sizing.csv")
+my_log.logger.info ("csv to_plt_london_pois_Station_sizing created")
 
 # Point of interest based on tyme of day report
 pivot_id_station_pois = sdf_london_pois_200m.groupBy("station_id").pivot("building_category").count()
@@ -203,7 +222,7 @@ join_geo_point_int_end = pivot_id_station_pois.join(mode_end_time, pivot_id_stat
 join_geo_point_int_start_pd = join_geo_point_int_start.toPandas()
 join_geo_point_int_end_pd = join_geo_point_int_end.toPandas()
 
-join_geo_point_int_start_pd.to_csv(data_subfoler + "to_plt_join_geo_point_int_start.csv")
-join_geo_point_int_end_pd.to_csv(data_subfoler + "to_plt_join_geo_point_int_end.csv")
+join_geo_point_int_start_pd.to_csv(data_subfoler + "join_geo_point_int_start.csv")
+join_geo_point_int_end_pd.to_csv(data_subfoler + "join_geo_point_int_end.csv")
 
 spark.sparkContext.stop()
