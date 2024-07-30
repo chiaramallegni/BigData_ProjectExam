@@ -1,5 +1,5 @@
 # BigData_ProjectExame
-Il seguente documento riporta le note tecniche relative al progetto BigData_ProjectExame.
+Il seguente documento riporta le note tecniche relative al progetto "Analisi del servizio bike-sharing nella città di Londra", svolto da Mallegni Chiara e Adilardi Matteo.
 
 ## Data
 I dati relativi al progetto si dividono in due categorie:
