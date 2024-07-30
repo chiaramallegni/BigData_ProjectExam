@@ -83,7 +83,7 @@ PL_map_station_day_end.update_layout(autosize=True, hovermode='closest', title =
 PL_map_station_day_end.write_html(fld_image + '/map_station_day_end.html')
 Mylog.logger.info("London Bike Station Day Time at End")
 
-## plot 11 - Map for Station based on start time of day
+## plot 12 - Map for Station based on start time of day
 PL_map_londonBike_start_time_day_cnt = px.scatter_mapbox(df_londonBike_start_time_day_cnt,
                              lat="latitude", lon="longitude", hover_name="station_name",
                              color = "start_time_of_day", color_discrete_map=color_scale_day, text='station_name',
@@ -95,7 +95,7 @@ PL_map_londonBike_start_time_day_cnt.update_layout(autosize=True, hovermode='clo
 PL_map_londonBike_start_time_day_cnt.write_html(fld_image + '/PL_map_start_time_of_day_station_sizing.html')
 Mylog.logger.info("Station Sizing based on Start Time of Day")
 
-## plot 12 - Map for Station bsize based on end time of day
+## plot 13 - Map for Station bsize based on end time of day
 PL_map_londonBike_end_time_day_cnt = px.scatter_mapbox(df_londonBike_end_time_day_cnt,
                              lat="latitude", lon="longitude", hover_name="station_name",
                              color = "end_time_of_day", color_discrete_map=color_scale_day, text='station_name',
@@ -107,7 +107,7 @@ PL_map_londonBike_end_time_day_cnt.update_layout(autosize=True, hovermode='close
 PL_map_londonBike_end_time_day_cnt.write_html(fld_image + '/PL_map_end_time_of_day_station_sizing.html')
 Mylog.logger.info("Station Sizing based on End Time of Day")
 
-## plot 12 - Map for Station bsize based on point of interest
+## plot 14 - Map for Station bsize based on point of interest
 PL_map_london_pois_200m_cnt = px.scatter_mapbox(sdf_london_pois_200m_cnt,
                              lat="latitude", lon="longitude", hover_name="station_name_x",
                              color = "building_category",  text='station_name_x',
@@ -118,6 +118,8 @@ PL_map_london_pois_200m_cnt.update_layout(autosize=True, hovermode='closest', ti
                            mapbox=dict(bearing=0, pitch=0), margin={"r": 0, "t": 0, "l": 0, "b": 0})
 PL_map_london_pois_200m_cnt.write_html(fld_image + '/PL_map_london_pois_Station_sizing.html')
 Mylog.logger.info("Station Sizing based london point of interest")
+
+
 
 Mylog.logger.info ("-- DASHBOARD --")
 

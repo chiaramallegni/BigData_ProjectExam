@@ -127,7 +127,7 @@ my_log.logger.info ("-- SPARK QUERIRS JOIN GEODATA --")
 
 # Create Buffer from Station Point
 gdf_london_pois_200m = Buffer_sp.buffer_sp(londonStation, zip_london_pois, my_log.logger, radius, data_subfoler)
-my_log.logger.info (" Spatial Join exectuted")
+my_log.logger.info ("Spatial Join exectuted")
 
 # Create df geo data --non passo direttamente da spark vrso pandas perchè è molo lento e alcune volte va in ou of memory
 sdf_london_pois_200m = spark.read.option("delimiter", ",").option("header", True).csv(data_subfoler + "gdf_london_pois_200m.csv")
@@ -208,14 +208,14 @@ my_log.logger.info ("csv to_plt_end_time_of_day_station_sizing created")
 
 sdf_london_pois_200m_cnt = sdf_london_pois_200m.groupBy("station_id", "station_name", "building_category").count()
 sdf_london_pois_200m_cnt_pd = sdf_london_pois_200m_cnt.toPandas()
-sdf_london_pois_200m_cnt_pd["station_id"] = sdf_london_pois_200m_cnt_pd["station_id"].astype(str)
+sdf_london_pois_200m_cnt_pd["station_id"] = sdf_london_pois_200m_cnt_pd["station_id"].astype(int)
 sdf_london_pois_200m_cnt_pd = sdf_london_pois_200m_cnt_pd.merge(gpd_london_station_xy, how='inner', left_on='station_id', right_on='station_id')
 sdf_london_pois_200m_cnt_pd.to_csv(data_subfoler + "to_plt_london_pois_Station_sizing.csv")
 my_log.logger.info ("csv to_plt_london_pois_Station_sizing created")
 
 # Point of interest based on tyme of day report
 pivot_id_station_pois = sdf_london_pois_200m.groupBy("station_id").pivot("building_category").count()
-# Join Data of mode of start and time with geodata station point of interest
+
 join_geo_point_int_start = pivot_id_station_pois.join(mode_start_time, pivot_id_station_pois.station_id == mode_start_time.start_station_id,"left")
 join_geo_point_int_end = pivot_id_station_pois.join(mode_end_time, pivot_id_station_pois.station_id == mode_end_time.end_station_id,"left")
 
