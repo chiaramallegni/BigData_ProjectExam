@@ -30,19 +30,17 @@ dst = df_edge.select('dst')
 df_node = src.union(dst).distinct().withColumnRenamed('src', 'id')
 g_london_stations = GraphFrame(df_node, df_edge)
 
-g_component = g_london_stations.stronglyConnectedComponents(maxIter=10).orderBy("component")
-g_component.select("id", "component").orderBy("component").show(30)
-g_component.groupBy("component")
-
-
-#g_triang = g_london_stations.triangleCount()
-#g_triang.select("id", "count").orderBy("count")
-
 
 # Degree Analysis
 
-g_london_stations.inDegrees.orderBy('inDegrees').desc().show(30)
-g_london_stations.outDegrees.orderBy('outDegrees').desc().show(30)
-g_london_stations.degrees.orderBy('degrees').desc().show(30)
+g_london_stations.inDegrees.orderBy(desc('inDegree')).show(30)
+g_london_stations.outDegrees.orderBy(desc('outDegree')).show(30)
+g_london_stations.degrees.orderBy(desc('degree')).show(30)
 
+#g_component = g_london_stations.stronglyConnectedComponents(maxIter=10).orderBy("component")
+#g_component.select("id", "component").orderBy("component").show(30)
+#g_component.groupBy("component")
+
+#g_triang = g_london_stations.triangleCount()
+#g_triang.select("id", "count").orderBy("count")
 spark.sparkContext.stop()
