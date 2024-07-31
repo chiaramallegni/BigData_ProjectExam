@@ -72,7 +72,7 @@ NOTA: il tempo di esecuzione non è poco....avere un po' di pazienza!!! ;)
     * data: che contiene gli shp file e i csv
 
 
-#### Visualizzazione della dasboad
+#### Visualizzazione della dashboad
 Una volta eseguito il main si può far girare il py plot and dash.
 Una volta eseguito compare nella console di controllo un ip. es http://127.0.0.1:8050, cliccando su questo ip si accede alla dash.
 
